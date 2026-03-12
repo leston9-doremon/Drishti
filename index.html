@@ -539,10 +539,29 @@ function speak(text, onEnd) {
   u.lang = L.code;
   u.rate = 0.88;
   u.pitch = 1.05;
+
+  // Find a voice that matches the current language
+  const voices = window.speechSynthesis.getVoices();
+  const voice = voices.find(v => v.lang.startsWith(currentLang)) || 
+                voices.find(v => v.lang.includes(currentLang.toUpperCase()));
+  
+  if (voice) {
+    u.voice = voice;
+    console.log(`Using voice: ${voice.name} (${voice.lang})`);
+  } else {
+    console.warn(`No native voice found for ${currentLang}. Using browser default.`);
+  }
+
   if (onEnd) u.onend = onEnd;
   setAnnounce(text, true);
   window.speechSynthesis.speak(u);
 }
+
+// Ensure voices are loaded
+window.speechSynthesis.onvoiceschanged = () => {
+  const voices = window.speechSynthesis.getVoices();
+  console.log('Available voices:', voices.map(v => `${v.name} [${v.lang}]`).join(', '));
+};
 
 function setAnnounce(text, speaking) {
   const el = document.getElementById('announce-text');
